@@ -14,7 +14,6 @@ def get_sheet(sheet_name):
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(creds)
-        # Apre il foglio specifico (HACCP o Chiusure)
         sheet = client.open_by_url(st.secrets["private_gsheets_url"]).worksheet(sheet_name)
         return sheet
     except Exception as e:
@@ -59,7 +58,7 @@ if menu == "🌡️ Registro Temperature HACCP":
             st.warning("La firma è obbligatoria!")
         else:
             with st.spinner("Salvataggio..."):
-                sheet = get_sheet("Foglio1") # Assicurati che il primo foglio si chiami così o cambialo
+                sheet = get_sheet("Foglio1") 
                 if sheet:
                     data_ora = datetime.now().strftime("%d/%m/%Y %H:%M")
                     stato = "✅ OK" if ((frigo == "Cella Negativa" and temp <= -18) or (frigo != "Cella Negativa" and temp <= 5)) else "🚨 ALLARME"
@@ -67,11 +66,10 @@ if menu == "🌡️ Registro Temperature HACCP":
                     st.success("Temperatura archiviata con successo!")
 
 # =================================================================
-# 4. TOOL 2: CHIUSURA SERATA (CON USCITE)
+# 4. TOOL 2: CHIUSURA SERATA
 # =================================================================
 elif menu == "📝 Report Chiusura & Cassa":
     st.subheader("Chiusura Giornaliera e Gestione Cassa")
-    
     with st.container(border=True):
         st.write("--- 💰 INCASSI ---")
         col1, col2 = st.columns(2)
@@ -85,9 +83,8 @@ elif menu == "📝 Report Chiusura & Cassa":
         u_extra = c5.number_input("Extra/Personale (€)", min_value=0.0)
         
         responsabile = st.text_input("Nome Responsabile Chiusura")
-        note = st.text_area("Note (es. ammanchi, guasti, eventi)")
+        note = st.text_area("Note")
 
-    # Calcolo Totali
     tot_incasso = cassa + pos
     tot_uscite = u_spesa + u_fatture + u_extra
     netto_contante = cassa - tot_uscite
@@ -102,39 +99,41 @@ elif menu == "📝 Report Chiusura & Cassa":
         if not responsabile:
             st.warning("Inserisci il nome del responsabile!")
         else:
-            with st.spinner("Archiviazione chiusura..."):
+            with st.spinner("Archiviazione..."):
                 sheet = get_sheet("Chiusure")
                 if sheet:
                     data = datetime.now().strftime("%d/%m/%Y")
-                    # Salvataggio su Google Sheets
                     sheet.append_row([data, responsabile, cassa, pos, u_spesa, u_fatture, u_extra, netto_contante, note])
-                    
-                    st.success("Chiusura salvata nel database!")
-                    
-                    # Messaggio per WhatsApp
-                    testo_wa = f"*CHIUSURA HORECA* 🏢%0AData: {data}%0AResp: {responsabile}%0A---%0A💰 Incasso Tot: €{tot_incasso:.2f}%0A💳 di cui POS: €{pos:.2f}%0A💸 Uscite Tot: €{tot_uscite:.2f}%0A💵 *Contante Netto: €{netto_contante:.2f}*%0A---%0ANote: {note}"
-                    st.link_button("📲 NOTIFICA AL TITOLARE (WhatsApp)", f"https://wa.me/393929334563?text={testo_wa}")
+                    st.success("Chiusura salvata!")
+                    testo_wa = f"*CHIUSURA HORECA* %0AData: {data}%0A---%0A💰 Incasso: €{tot_incasso:.2f}%0A💸 Uscite: €{tot_uscite:.2f}%0A💵 *Netto Cassa: €{netto_contante:.2f}*"
+                    st.link_button("📲 NOTIFICA WHATSAPP", f"https://wa.me/393929334563?text={testo_wa}")
 
 # =================================================================
-# 5. TOOL 3: MARGINI VINI
+# 5. TOOL 3: MARGINI VINI (Aggiornato con Euro)
 # =================================================================
 elif menu == "🍷 Calcolo Margini Vini":
-    st.subheader("Calcolatrice Margini SuPeR")
-    p_acquisto = st.number_input("Costo d'acquisto (No IVA) (€)", min_value=0.0, value=10.0)
-    p_vendita = st.number_input("Prezzo vendita (Con IVA) (€)", min_value=0.0, value=35.0)
-    prezzo_netto = p_vendita / 1.22
-    utile = prezzo_netto - p_acquisto
-    margine = (utile / prezzo_netto) * 100 if prezzo_netto > 0 else 0
-    st.metric("Margine Reale", f"{margine:.1f}%")
-    if margine < 60: st.error("Margine troppo basso!")
-    else: st.success("Margine in linea!")
+    st.subheader("Calcolo Rapido Guadagno Bottiglia")
+    with st.container(border=True):
+        p_acquisto = st.number_input("Costo d'acquisto (ESCLUSA IVA) (€)", min_value=0.0, value=10.0)
+        p_vendita = st.number_input("Prezzo nel Menù (IVA INCLUSA) (€)", min_value=0.0, value=30.0)
+    
+    prezzo_netto_vendita = p_vendita / 1.22
+    utile_euro = prezzo_netto_vendita - p_acquisto
+    margine_perc = (utile_euro / prezzo_netto_vendita) * 100 if prezzo_netto_vendita > 0 else 0
 
-# --- FOOTER FISSO CON LINK AL REPORT ---
-st.write("")
-st.write("---")
-st.write("### 📊 AREA TITOLARE")
-st.link_button("📂 APRI REPORT COMPLETO (Google Sheets)", st.secrets["private_gsheets_url"])
-# --- FOOTER FINALE PERSONALIZZATO ---
+    st.divider()
+    col_v1, col_v2 = st.columns(2)
+    col_v1.metric("Guadagno Netto", f"€ {utile_euro:.2f}")
+    col_v2.metric("Margine Reale", f"{margine_perc:.1f}%")
+    
+    if margine_perc < 60:
+        st.error("⚠️ Margine sotto la soglia SuPeR (60%). Valuta di alzare il prezzo.")
+    else:
+        st.success("✅ Margine eccellente per la gestione aziendale.")
+
+# =================================================================
+# 6. FOOTER FINALE (Unico e pulito)
+# =================================================================
 st.write("")
 st.write("---")
 st.write("### 📊 AREA TITOLARE")
