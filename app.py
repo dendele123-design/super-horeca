@@ -134,4 +134,16 @@ st.write("")
 st.write("---")
 st.write("### 📊 AREA TITOLARE")
 st.link_button("📂 APRI REPORT COMPLETO (Google Sheets)", st.secrets["private_gsheets_url"])
-st.caption("Powered by SuPeR | HORECA Edition")
+# --- FOOTER FINALE PERSONALIZZATO ---
+st.write("")
+st.write("---")
+st.write("### 📊 AREA TITOLARE")
+st.link_button("📂 APRI REPORT COMPLETO (Google Sheets)", st.secrets["private_gsheets_url"])
+
+st.markdown("""
+    <div style="text-align: center; color: #888; font-size: 14px; margin-top: 20px;">
+        Powered by 
+        <a href="https://www.superstart.it" target="_blank" style="color: #b00000; text-decoration: none; font-weight: bold;">SuPeR</a> 
+        & Streamlit
+    </div>
+    """, unsafe_allow_html=True)
