@@ -23,7 +23,7 @@ def get_sheet(sheet_name):
 # =================================================================
 # 2. CONFIGURAZIONE E DESIGN
 # =================================================================
-st.set_page_config(page_title="SuPeR HORECA Manager", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="SuPeR HORECA Manager", page_icon="🚀", layout="centered")
 
 st.markdown("""
 <style>
