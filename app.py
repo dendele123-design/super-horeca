@@ -22,7 +22,7 @@ def get_sheet(sheet_name):
 # =================================================================
 # 2. CONFIGURAZIONE E DESIGN
 # =================================================================
-st.set_page_config(page_title="SuPeR HORECA Manager", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="SuPeR HORECA Manager", page_icon="🚀", layout="centered")
 
 st.markdown("""
 <style>
@@ -42,7 +42,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏢 SuPeR - HORECA Edition")
+st.title("🚀 SuPeR - HORECA Edition")
 menu = st.selectbox("COSA DEVI FARE?", ["📅 Gestione Turni", "📝 Chiusura Cassa", "🌡️ Registro HACCP", "🍷 Margini Vini"])
 st.divider()
 
