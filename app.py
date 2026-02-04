@@ -36,7 +36,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏢 SuPeR - HORECA Edition")
+st.title("🚀 SuPeR - HORECA Edition")
 
 # --- MENU DI NAVIGAZIONE (Le scritte qui devono essere IDENTICHE a quelle sotto) ---
 opzione = st.selectbox("COSA DEVI FARE?", [
