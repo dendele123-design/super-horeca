@@ -42,7 +42,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 SuPeR - HORECA Edition")
+st.title("🚀 SuPeR - HORECA Edition2")
 menu = st.selectbox("COSA DEVI FARE?", ["📅 Gestione Turni", "📝 Chiusura Cassa", "🌡️ Registro HACCP", "🍷 Margini Vini"])
 st.divider()
 
