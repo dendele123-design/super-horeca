@@ -1,0 +1,14 @@
+name: Keep App Awake
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch: 
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sveglia forzata
+        run: |
+          curl -L -s -o /dev/null -w "%{http_code}" "https://super-horeca-yewtxo4nqtumhvvo2c27zu.streamlit.app/" || true
