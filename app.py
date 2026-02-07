@@ -75,19 +75,23 @@ if menu == "📅 Gestione Turni":
     st.subheader("👀 Prossimi Turni")
     sheet = get_sheet("Turni")
     if sheet:
-        data = sheet.get_all_records()
-        if data:
-            for row in reversed(data[-10:]):
+        # Lettura sicura
+        all_values = sheet.get_all_values()
+        if len(all_values) > 1:
+            headers = all_values[0]
+            rows = all_values[1:]
+            for r in reversed(rows[-10:]):
+                row = dict(zip(headers, r))
                 with st.container():
-                    st.markdown(f"""
-                    <div class="history-card">
-                        <b>{row['Data']}</b> - {row['Dipendente']} ({row['Ruolo']})<br>
-                        🕒 {row['Inizio']} - {row['Fine']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    msg = f"Ciao {row['Dipendente']}, ti confermo il turno SuPeR per il {row['Data']}: dalle {row['Inizio']} alle {row['Fine']}. Buon lavoro!"
-                    st.link_button(f"📲 AVVISA {row['Dipendente'].upper()}", f"https://wa.me/{row['Cellulare']}?text={msg.replace(' ', '%20')}")
+                    st.markdown(f"""<div class="history-card">
+<b>{row.get('Data','')}</b> - {row.get('Dipendente','')} ({row.get('Ruolo','')})<br>
+🕒 {row.get('Inizio','')} - {row.get('Fine','')}
+</div>""", unsafe_allow_html=True)
+                    msg = f"Ciao {row.get('Dipendente','')}, ti confermo il turno SuPeR per il {row.get('Data','')}: dalle {row.get('Inizio','')} alle {row.get('Fine','')}. Buon lavoro!"
+                    st.link_button(f"📲 AVVISA {row.get('Dipendente','').upper()}", f"https://wa.me/{row.get('Cellulare','')}?text={msg.replace(' ', '%20')}")
                     st.write("")
+        else:
+            st.info("Nessun turno in archivio.")
 
 # =================================================================
 # 2. CHIUSURA CASSA
@@ -98,10 +102,9 @@ elif menu == "📝 Chiusura Cassa":
         col1, col2 = st.columns(2)
         cassa_inc = col1.number_input("Contanti (€)", 0.0, step=10.0)
         pos_inc = col2.number_input("POS (€)", 0.0, step=10.0)
-        u_tot = st.number_input("Totale Uscite (Spesa/Extra/Fatture) (€)", 0.0, step=5.0)
+        u_tot = st.number_input("Totale Uscite (€)", 0.0, step=5.0)
         resp = st.text_input("Responsabile")
     
-    tot_inc = cassa_inc + pos_inc
     netto = cassa_inc - u_tot
     
     if st.button("ARCHIVIA CHIUSURA 🚀", type="primary"):
@@ -109,18 +112,20 @@ elif menu == "📝 Chiusura Cassa":
         if sheet:
             data_oggi = datetime.now().strftime("%d/%m/%Y")
             sheet.append_row([data_oggi, resp, cassa_inc, pos_inc, 0, 0, u_tot, netto, ""])
-            st.success(f"Chiusura del {data_oggi} registrata!")
+            st.success("Chiusura registrata!")
             time.sleep(1)
             st.rerun()
 
     st.write("---")
-    st.subheader("📊 Ultime 5 Chiusure")
+    st.subheader("📊 Ultime Chiusure")
     sheet = get_sheet("Chiusure")
     if sheet:
-        data = sheet.get_all_records()
-        if data:
-            df = pd.DataFrame(data).tail(5).iloc[::-1]
-            st.table(df[['Data', 'Responsabile', 'Totale Netto']])
+        all_values = sheet.get_all_values()
+        if len(all_values) > 1:
+            df = pd.DataFrame(all_values[1:], columns=all_values[0])
+            st.table(df[['Data', 'Responsabile', 'Totale Netto']].tail(5).iloc[::-1])
+        else:
+            st.info("Nessuna chiusura presente.")
 
 # =================================================================
 # 3. REGISTRO HACCP
@@ -143,13 +148,15 @@ elif menu == "🌡️ Registro HACCP":
             st.rerun()
 
     st.write("---")
-    st.subheader("📋 Ultime 5 Rilevazioni")
+    st.subheader("📋 Ultime Rilevazioni")
     sheet = get_sheet("Foglio1")
     if sheet:
-        data = sheet.get_all_records()
-        if data:
-            df_h = pd.DataFrame(data).tail(5).iloc[::-1]
-            st.table(df_h)
+        all_values = sheet.get_all_values()
+        if len(all_values) > 1:
+            df_h = pd.DataFrame(all_values[1:], columns=all_values[0])
+            st.table(df_h.tail(5).iloc[::-1])
+        else:
+            st.info("Nessuna rilevazione presente.")
 
 # =================================================================
 # 4. MARGINI VINI
@@ -172,12 +179,10 @@ st.write("---")
 st.write("### 📊 AREA TITOLARE")
 st.link_button("📂 APRI REPORT COMPLETO (Google Sheets)", st.secrets["private_gsheets_url"])
 
-# --- TASTO TORNA ALL'HUB UNIVERSALE ---
 st.write("")
 st.markdown("<p style='text-align:center; font-size:13px; color:#888;'>Hai bisogno di altri strumenti?</p>", unsafe_allow_html=True)
 st.link_button("🌐 VEDI TUTTE LE NOSTRE WEB APP", "https://app-comunicattivamente-center.streamlit.app/")
 
-# --- FOOTER ---
 st.markdown(f"""
     <div style="text-align: center; color: #888; font-size: 14px; margin-top: 20px;">
         Powered by <a href="https://www.superstart.it" target="_blank" style="color: {ROSSO_BRAND}; text-decoration: none; font-weight: bold;">SuPeR</a> & Streamlit
